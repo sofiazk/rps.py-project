@@ -17,14 +17,13 @@ class Player():
         return 'rock'
 
     def learn(self, my_move, their_move):
-        self.my_move = their_move
+        self.my_move = my_move
         self.their_move = their_move
 
 
 class RandomPlayer(Player):
     def move(self):
         return(random.choice(moves))
-        return(throw)
 
     def learn(self, my_move, their_move):
         pass
@@ -47,15 +46,15 @@ class HumanPlayer(Player):
 class ReflectPlayer(Player):
     def __init__(self):
         Player.__init__(self)
-        self.learn_move = None
+        self.last_opponent_move = None
 
-    def move(self):
-        if self.learn_move is None:
-            return random.choice(moves)
-        return self.learn_move
+    def play(self):
+        if self.last_opponent_move is None:
+            return Player.play(self)
+        return self.last_opponent_move
 
-    def learn(self, my_move, their_move):
-        self.their_move = their_move
+    def learn(self, my_move, last_opponent_move):
+        self.last_opponent_move = last_opponent_move
 
 
 class Cycles(Player):
@@ -93,9 +92,11 @@ class Game:
     def play_round(self):
         move1 = self.p1.move()
         move2 = self.p2.move()
+
         print(f"Player 1: {move1}  Player 2: {move2}")
         if move1 == move2:
             print("Its a tie!")
+            self.p1.score += 1
         if beats(move1, move2) is True:
             print("You won!")
             self.p1.score += 1
@@ -109,13 +110,22 @@ class Game:
         print("Rock, paper, scissors, go!")
         for round in range(3):
             print(f"Round {round}:")
+            print(f"\n*SCORES*: P1: {self.p1.score} P2: {self.p2.score}")
             self.play_round()
         if self.p1.score > self.p2.score:
             print('Player 1 wins!')
+            print(f"score: P1: {self.p1.score} P2: {self.p2.score}\n\n")
+            self.p1.score += 1
+            return 1
         elif self.p1.score < self.p2.score:
             print('Player 2 wins!')
+            self.p2.score += 1
+            return 2
         else:
             print('It is a tie!')
+            print(f"score: P1: {self.p1.score}  P2: {self.p2.score}\n\n")
+            return 0
+        print(f"\nThe score is {self.p1.score} to {self.p2.score}")
         print('The final score was: ' + str(self.p1.score) + ' TO ' +
               str(self.p2.score))
 
@@ -123,5 +133,5 @@ class Game:
 
 
 if __name__ == '__main__':
-    game = Game(HumanPlayer(), RandomPlayer())
+    game = Game(HumanPlayer(), Cycles())
     game.play_game()
